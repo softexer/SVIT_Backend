@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const config = require('../Configfiles/config.json');
 var dbConnection = {
   connectToDB: function connectWithDatabase() {
-    ////console.log"Called Database connection");
+    console.log("Called Database connection");
     mongoose.set('strictQuery', true);
     //mongoose.set('useCreateIndex', true);
     mongoose.connect(config.connectionString, { useNewUrlParser: true, useUnifiedTopology: true });

@@ -1,7 +1,6 @@
 var Joi = require('@hapi/joi');
-var AdminValidationsData = {
+var uservalidationData = {
     signup_Validations: Joi.object({
-        userID: Joi.string().strict().required(),
         firstName: Joi.string().strict().required(),
         lastName: Joi.string().strict().required(),
         dob: Joi.string().strict().required(),
@@ -23,4 +22,4 @@ var AdminValidationsData = {
         password: Joi.string().strict().required()
     })
 }
-module.exports = AdminValidationsData
+module.exports = uservalidationData

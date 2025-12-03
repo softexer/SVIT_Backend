@@ -1,5 +1,9 @@
 
 {
     "connectionString": "mongodb+srv://svitatp:Svit2025@cluster0.iqoccjq.mongodb.net/stagingsvit?retryWrites=true&w=majority",
-    "apiURL": "http://localhost:3000/api"
+    "apiURL": "http://localhost:3000/api",
+    "secretkey":"svit2025",
+    "mailName":"SMTP",
+    "mailService": "gmail.com",
+    "authMail": "svit2005@gmail.com"
 }

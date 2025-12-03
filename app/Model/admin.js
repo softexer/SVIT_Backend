@@ -21,4 +21,5 @@ var AdminSchema = new schema({
   
 
 });
+
 module.exports = mongoose.model("Admin", AdminSchema);

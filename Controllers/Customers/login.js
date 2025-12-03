@@ -1,7 +1,6 @@
 
 var customerModel = require("../../app/Model/Customer");
 var customervalidations = require("./validations").customervalidations;
-var device_Model = require('../../app/Model/device_Model');
 var jsonwebtoken = require('jsonwebtoken');
 var config = require('../../app/Configfiles/config.json')
 module.exports.login = async function login(req, res) {
@@ -26,7 +25,7 @@ module.exports.login = async function login(req, res) {
             }]
         }).exec();
         if (!checkingAdmin_userID) {
-            return res.json({ response: 0, message: "This userID does not exist" })
+            return res.json({ response: 0, message: "No Data found. Please register us" })
         }
         if (checkingAdmin_userID.password !== params.password) {
             return res.json({ response: 0, message: "Password is incorrect" })

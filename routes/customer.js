@@ -8,7 +8,7 @@ app.use(
 );
 var customerlogin = require('../Controllers/Customers/login');
 var customerSignup = require('../Controllers/Customers/signup');
-var verificatioToken = require('./verificatioToken')
+var verificatioToken = require('./verificationToken')
 
 //Admin signup api
 app.post('/signup', async (req, res) => {
