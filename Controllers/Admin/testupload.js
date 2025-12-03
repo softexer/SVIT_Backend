@@ -90,7 +90,6 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
 }
 
 const fs = require("fs");
-const path = require("path");
 
 module.exports.deleteMockTest = async function deleteMockTest(req, res) {
     try {

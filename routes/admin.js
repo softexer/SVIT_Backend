@@ -8,6 +8,7 @@ app.use(
 );
 var Adminlogin = require('../Controllers/Admin/login');
 var Adminsignup = require('../Controllers/Admin/signup');
+var mocktestUpload = require('../Controllers/Admin/testupload')
 var verificatioToken = require('./verificationToken')
 
 //Admin signup api
@@ -19,6 +20,12 @@ app.post('/adminlogin', async (req, res) => {
     Adminlogin.login(req, res)
 })
 
+app.post('/mocktestupload', async (req, res) => {
+    mocktestUpload.testUploaddata(req, res)
+})
 
+app.delete('/mocktestdelete', async (req, res) => {
+    mocktestUpload.deleteMockTest(req, res)
+})
 
 module.exports = app;
