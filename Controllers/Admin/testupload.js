@@ -1,14 +1,17 @@
-var { testValidation } = require('./validations');
+var testValidation = require('./validations').testvalidations;
 var AdminModel = require('../../app/Model/admin');
 var mocktestModel = require('../../app/Model/mockExams')
 var RandomGenerate_password = require('generate-password');
 var path = require('path')
-module.exports.testUploaddata = async function testUploaddata(req, res) {
+module.exports.testUploaddata112 = async function testUploaddata112(req, res) {
     try {
         var params = JSON.parse(req.body.testdata);
+        console.log("body",params)
         if (params == undefined) {
             return res.json({ response: 0, message: "Please pass user request data" })
         }
+        var result = await testValidation.validate(params);
+
         var result = await testValidation.validate(params);
         if (result.error) {
             res.statusCode = 400;
@@ -50,12 +53,12 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
                                 testURL: dbpath || ""
                             };
                             var testtype = params.category;
-
+console.log("testtype",testtype)
                             const updateddata = await mocktestModel.findOneAndUpdate(
                                 { userID: params.userID },
                                 {
                                     $push: {
-                                        testtype: testData
+                                        [testtype]: testData
                                     }
                                 },
                                 { new: true, upsert: true }
@@ -156,4 +159,108 @@ module.exports.deleteMockTest = async function deleteMockTest(req, res) {
 
 
 
+
+const mammoth = require("mammoth");
+
+module.exports.testUploaddata = async function testUploaddata(req, res) {
+    try {
+        var params = JSON.parse(req.body.testdata);
+
+        if (!params) {
+            return res.json({ response: 0, message: "Please pass user request data" })
+        }
+
+        var result = await testValidation.validate(params);
+        if (result.error) {
+            return res.status(400).json({ response: 0, message: result.error.details[0].message });
+        }
+
+        var Checking_userID = await AdminModel.findOne({ userID: params.userID }).exec();
+        if (!Checking_userID) {
+            return res.json({ response: 0, message: "userID data not found" });
+        }
+
+        if (!req.files || !req.files.test) {
+            return res.json({ response: 0, message: "Please upload mock test file" });
+        }
+
+        var file = req.files.test;
+        var ext = path.extname(file.name);
+
+        if (ext !== ".docx") {
+            return res.json({ response: 0, message: "Only .docx format allowed" });
+        }
+
+        var saveName = `svit_${Date.now()}.docx`;
+        var filePath = `./public/images/tests/${saveName}`;
+
+        // Step 1 → Save file to server
+        file.mv(filePath, async (err) => {
+            if (err) {
+                return res.json({ response: 0, message: "File upload failed" });
+            }
+
+            // Step 2 → Convert docx → Raw text
+            const { value } = await mammoth.extractRawText({ path: filePath });
+
+            // Step 3 → Convert raw text → JSON
+            const questions = convertToQuestions(value);
+
+            // Step 4 → Save JSON in DB
+            const testData = {
+                testName: params.testName,
+                testNumber: params.testNumber,
+                questions: questions   // store JSON
+            };
+
+            let testtype = params.category;
+
+            const updated = await mocktestModel.findOneAndUpdate(
+                { userID: params.userID },
+                { $push: { [testtype]: testData } },
+                { new: true, upsert: true }
+            );
+
+            return res.json({
+                response: 1,
+                message: "Mock test uploaded & converted successfully",
+                questions: questions
+            });
+        });
+
+    } catch (error) {
+        console.log("Upload error:", error);
+        return res.json({ response: 0, message: "Something went wrong" });
+    }
+};
+
+function convertToQuestions(rawText) {
+    const lines = rawText.split("\n").map(l => l.trim()).filter(l => l !== "");
+
+    let questions = [];
+    let q = null;
+
+    lines.forEach(line => {
+        if (line.match(/^Q\d+/i)) {
+            if (q) questions.push(q);
+
+            q = {
+                id: questions.length + 1,
+                text: line.replace(/^Q\d+:/i, "").trim(),
+                options: [],
+                correctAnswer: null
+            };
+        }
+        else if (line.match(/^\(A\)/i) || line.match(/^\([A-D]\)/i)) {
+            q.options.push(line.substring(3).trim());
+        }
+        else if (line.startsWith("ANSWER")) {
+            const letter = line.split(":")[1].trim();
+            q.correctAnswer = letter.charCodeAt(0) - 65;
+        }
+    });
+
+    if (q) questions.push(q);
+    return questions;
+}
 

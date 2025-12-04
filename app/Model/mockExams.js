@@ -11,15 +11,19 @@ var TestSchema = new schema({
     category: {
         type: String,
         enum: ["preliminary", "application", "hallticket", "videolectures"],
-        required: true,
+        required: false,
     },
 
     preliminary: [{
         testName: { type: String, required: true, trim: true },
         testNumber: { type: Number, required: true },
         testURL: { type: String, default: "" },
+        questions: {
+            type: Array,
+            default: []
+        }
     }],
-    applicationtests: [{
+    application: [{
         testName: { type: String, required: true, trim: true },
         testNumber: { type: Number, required: true },
         testURL: { type: String, default: "" },
