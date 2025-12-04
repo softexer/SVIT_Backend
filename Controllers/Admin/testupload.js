@@ -6,7 +6,7 @@ var path = require('path')
 module.exports.testUploaddata112 = async function testUploaddata112(req, res) {
     try {
         var params = JSON.parse(req.body.testdata);
-        console.log("body",params)
+        console.log("body", params)
         if (params == undefined) {
             return res.json({ response: 0, message: "Please pass user request data" })
         }
@@ -53,7 +53,7 @@ module.exports.testUploaddata112 = async function testUploaddata112(req, res) {
                                 testURL: dbpath || ""
                             };
                             var testtype = params.category;
-console.log("testtype",testtype)
+                            console.log("testtype", testtype)
                             const updateddata = await mocktestModel.findOneAndUpdate(
                                 { userID: params.userID },
                                 {
@@ -96,14 +96,14 @@ const fs = require("fs");
 
 module.exports.deleteMockTest = async function deleteMockTest(req, res) {
     try {
-        const { userID, testNumber,category } = req.body;
+        const { userID, testNumber, category } = req.body;
 
-      
+
         if (!userID || !testNumber) {
             return res.json({ response: 0, message: "userID & testNumber are required" });
         }
 
-       
+
 
         // -----------------------------
         // Find the mock test document
@@ -121,7 +121,7 @@ module.exports.deleteMockTest = async function deleteMockTest(req, res) {
             return res.json({ response: 0, message: "Test not found" });
         }
 
-       
+
         if (testItem.testURL) {
             const fullPath = path.join(__dirname, "../../public", testItem.testURL);
 
@@ -156,6 +156,34 @@ module.exports.deleteMockTest = async function deleteMockTest(req, res) {
         return res.json({ response: 0, message: "Something went wrong" });
     }
 };
+
+module.exports.fetchmocktest = async function fetchmocktest(req, res) {
+    try {
+
+        const { userID } = req.body;
+
+
+        if (!userID) {
+            return res.json({ response: 0, message: "userID is required" });
+        }
+
+
+        var checkingAdmin_userID = await mocktestModel.findOne({
+            $or: [{
+                userID:userID
+            }]
+        }).exec();
+        if (!checkingAdmin_userID) {
+            return res.json({ response: 0, message: "This userID does not exist" })
+        } else {
+            return res.json({ response: 3, message: "Fetch mock test data successfully", data: checkingAdmin_userID })
+
+        }
+    } catch (error) {
+        console.log("try catch error", error);
+        return res.json({ response: 0, message: "Something went to wrong" })
+    }
+}
 
 
 

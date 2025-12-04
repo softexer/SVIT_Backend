@@ -28,4 +28,9 @@ app.delete('/mocktestdelete', async (req, res) => {
     mocktestUpload.deleteMockTest(req, res)
 })
 
+
+app.post('/mocktestfetch',async (req, res) => {
+    mocktestUpload.fetchmocktest(req, res)
+})
+
 module.exports = app;
