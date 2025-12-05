@@ -15,8 +15,12 @@ var TestSchema = new schema({
     },
 
     preliminary: [{
+        type:{type: String, required: true},
         testName: { type: String, required: true, trim: true },
-        testNumber: { type: Number, required: true },
+        testNumber: {
+            type: Number, required: true, index: true,
+            unique: true,
+        },
         testURL: { type: String, default: "" },
         questions: {
             type: Array,
@@ -24,18 +28,37 @@ var TestSchema = new schema({
         }
     }],
     application: [{
+         type:{type: String, required: true},
         testName: { type: String, required: true, trim: true },
-        testNumber: { type: Number, required: true },
+        testNumber: {
+            type: Number, required: true, index: true,
+            unique: true,
+        },
         testURL: { type: String, default: "" },
+        questions: {
+            type: Array,
+            default: []
+        }
     }],
     hallticket: [{
+         type:{type: String, required: true},
         testName: { type: String, required: true, trim: true },
-        testNumber: { type: Number, required: true },
+        testNumber: {
+            type: Number, required: true, index: true,
+            unique: true
+        },
         testURL: { type: String, default: "" },
+        questions: {
+            type: Array,
+            default: []
+        }
     }],
     videolectures: [{
         testName: { type: String, required: true, trim: true },
-        testNumber: { type: Number, required: true },
+        testNumber: {
+            type: Number, required: true, index: true,
+            unique: true
+        },
         testURL: { type: String, default: "" },
     }],
 

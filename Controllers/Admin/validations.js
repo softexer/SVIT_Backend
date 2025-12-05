@@ -16,6 +16,7 @@ var AdminValidationsData = {
     testvalidations: Joi.object({
         userID: Joi.string().strict().required(),
         category: Joi.string().strict().required(),
+        type:Joi.string().optional().allow(''),
         testName: Joi.string().trim().required(),
         testNumber: Joi.number().required(),
     })

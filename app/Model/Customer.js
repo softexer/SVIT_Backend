@@ -76,7 +76,9 @@ var CustomerSchema = new schema({
     phoneNumber: {
         type: String,
         required: false,
-        default: ''
+        default: '',
+        index: true,
+        unique: true,
     },
     isMobileVerified: {
         type: Boolean,

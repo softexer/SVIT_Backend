@@ -99,7 +99,7 @@ module.exports.deleteMockTest = async function deleteMockTest(req, res) {
         const { userID, testNumber, category } = req.body;
 
 
-        if (!userID || !testNumber) {
+        if (!userID || !testNumber || !category) {
             return res.json({ response: 0, message: "userID & testNumber are required" });
         }
 
@@ -108,21 +108,28 @@ module.exports.deleteMockTest = async function deleteMockTest(req, res) {
         // -----------------------------
         // Find the mock test document
         // -----------------------------
-        const mockData = await mocktestModel.findOne({ userID }).exec();
+
+        const mockData = await mocktestModel.findOne(
+            { userID },
+            { [category]: 1 }   // ✅ dynamic projection
+        ).exec();
         if (!mockData) {
             return res.json({ response: 0, message: "Mock test data not found" });
         }
 
 
         // Find the test to delete
-        const testItem = mockData.category.find(t => t.testNumber == testNumber);
-
+        const testItem = mockData[category].find(
+            t => String(t.testNumber) === String(testNumber)
+        );
+        console.log(" mockData.category", testItem)
         if (!testItem) {
             return res.json({ response: 0, message: "Test not found" });
         }
 
 
         if (testItem.testURL) {
+            console.log("testURL")
             const fullPath = path.join(__dirname, "../../public", testItem.testURL);
 
             if (fs.existsSync(fullPath)) {
@@ -140,12 +147,12 @@ module.exports.deleteMockTest = async function deleteMockTest(req, res) {
             { userID },
             {
                 $pull: {
-                    category: { testNumber: testNumber }
+                    [category]: { testNumber: testNumber }   // ✅ dynamic field
                 }
             },
             { new: true }
         );
-
+        console.log(updated)
         return res.json({
             response: 3,
             message: "Mock test deleted successfully"
@@ -214,12 +221,12 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
 
         var file = req.files.test;
         var ext = path.extname(file.name);
-console.log("etxt",true || fasle)
+        console.log("etxt", true || fasle)
         if (ext !== ".docx" && ext !== ".mp4") {
             return res.json({ response: 0, message: "Only .docx format allowed" });
         }
 
-        var saveName = `svit_${Date.now()}.docx`;
+        var saveName = `svit_${Date.now()}` + ext;
         var filePath = `./public/images/tests/${saveName}`;
         var dbpath = '/images/tests/' + saveName;
 
@@ -239,6 +246,28 @@ console.log("etxt",true || fasle)
                     testURL: dbpath,
                     questions: ""   // store JSON
                 };
+                let testtype = params.category;
+
+                const updated = await mocktestModel.findOneAndUpdate(
+                    { userID: params.userID },
+                    [
+                        {
+                            $set: {
+                                videolectures: {
+                                    $cond: {
+                                        if: { $isArray: "$videolectures" },
+                                        then: { $concatArrays: ["$videolectures", [testData]] },
+                                        else: [testData]
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    { upsert: true, new: true }
+                );
+
+
+
             } else {
                 // Step 2 → Convert docx → Raw text
                 const { value } = await mammoth.extractRawText({ path: filePath });
@@ -257,16 +286,19 @@ console.log("etxt",true || fasle)
 
 
             let testtype = params.category;
+            console.log("type", testtype)
 
-            const updated = await mocktestModel.findOneAndUpdate(
+
+            const updated = await mocktestModel.updateMany(
                 { userID: params.userID },
                 { $push: { [testtype]: testData } },
                 { new: true, upsert: true }
             );
-
+            console.log(updated)
             return res.json({
-                response: 1,
+                response: 3,
                 message: "Mock test uploaded & converted successfully",
+                filepath: dbpath
                 //  questions: questions
             });
         });

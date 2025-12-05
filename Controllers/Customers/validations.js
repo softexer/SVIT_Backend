@@ -7,14 +7,14 @@ var uservalidationData = {
         phoneNumber: Joi.string().strict().required(),
         fatherName: Joi.string().strict().required(),
         motherName: Joi.string().strict().required(),
-        aadharNo: Joi.string().strict().required(),
+        aadharNo: Joi.string().optional().allow(''),
         village: Joi.string().strict().required(),
         mandal: Joi.string().strict().required(),
         district: Joi.string().strict().required(),
         collegeName: Joi.string().strict().required(),
-        facebookID: Joi.string().strict().required(),
-        instaID: Joi.string().strict().required(),
-        emailID: Joi.string().strict().required(),
+        facebookID: Joi.string().optional().allow(''),
+        instaID: Joi.string().optional().allow(''),
+        emailID: Joi.string().optional().allow(''),
         hallTicketNo:Joi.string().strict().required(),
         applicationNo:Joi.string().strict().required()
 
