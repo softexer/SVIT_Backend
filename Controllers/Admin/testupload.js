@@ -266,8 +266,6 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
                     { upsert: true, new: true }
                 );
 
-
-
             } else {
                 // Step 2 → Convert docx → Raw text
                 const { value } = await mammoth.extractRawText({ path: filePath });
