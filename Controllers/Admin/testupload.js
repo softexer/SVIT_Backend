@@ -170,7 +170,7 @@ module.exports.fetchmocktest = async function fetchmocktest(req, res) {
 
         var checkingAdmin_userID = await mocktestModel.findOne({
             $or: [{
-                userID:userID
+                userID: userID
             }]
         }).exec();
         if (!checkingAdmin_userID) {
@@ -214,13 +214,14 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
 
         var file = req.files.test;
         var ext = path.extname(file.name);
-
-        if (ext !== ".docx") {
+console.log("etxt",true || fasle)
+        if (ext !== ".docx" && ext !== ".mp4") {
             return res.json({ response: 0, message: "Only .docx format allowed" });
         }
 
         var saveName = `svit_${Date.now()}.docx`;
         var filePath = `./public/images/tests/${saveName}`;
+        var dbpath = '/images/tests/' + saveName;
 
         // Step 1 → Save file to server
         file.mv(filePath, async (err) => {
@@ -228,18 +229,32 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
                 return res.json({ response: 0, message: "File upload failed" });
             }
 
-            // Step 2 → Convert docx → Raw text
-            const { value } = await mammoth.extractRawText({ path: filePath });
+            var testData;
+            if (ext == ".mp4") {
 
-            // Step 3 → Convert raw text → JSON
-            const questions = convertToQuestions(value);
+                // Step 4 → Save JSON in DB
+                const testData = {
+                    testName: params.testName,
+                    testNumber: params.testNumber,
+                    testURL: dbpath,
+                    questions: ""   // store JSON
+                };
+            } else {
+                // Step 2 → Convert docx → Raw text
+                const { value } = await mammoth.extractRawText({ path: filePath });
 
-            // Step 4 → Save JSON in DB
-            const testData = {
-                testName: params.testName,
-                testNumber: params.testNumber,
-                questions: questions   // store JSON
-            };
+                // Step 3 → Convert raw text → JSON
+                const questions = convertToQuestions(value);
+
+                // Step 4 → Save JSON in DB
+                const testData = {
+                    testName: params.testName,
+                    testNumber: params.testNumber,
+                    testURL: dbpath,
+                    questions: questions   // store JSON
+                };
+            }
+
 
             let testtype = params.category;
 
@@ -252,7 +267,7 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
             return res.json({
                 response: 1,
                 message: "Mock test uploaded & converted successfully",
-                questions: questions
+                //  questions: questions
             });
         });
 

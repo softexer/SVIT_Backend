@@ -15,6 +15,8 @@ var uservalidationData = {
         facebookID: Joi.string().strict().required(),
         instaID: Joi.string().strict().required(),
         emailID: Joi.string().strict().required(),
+        hallTicketNo:Joi.string().strict().required(),
+        applicationNo:Joi.string().strict().required()
 
     }),
     customervalidations: Joi.object({

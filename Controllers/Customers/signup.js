@@ -34,7 +34,9 @@ module.exports.signup = async function signup(req, res) {
                 facebookID: params.facebookID,
                 instaID: params.instaID,
                 emailID: params.emailID,
-                isMobileVerified:true
+                isMobileVerified:true,
+                hallTicketNo:params.hallTicketNo,
+                applicationNo:params.applicationNo
             }])
             if (insertadmin.length == 0) {
                 return res.json({ response: 0, message: "User signup failed" })
