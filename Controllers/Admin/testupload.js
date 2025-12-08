@@ -198,129 +198,104 @@ module.exports.fetchmocktest = async function fetchmocktest(req, res) {
 const mammoth = require("mammoth");
 
 module.exports.testUploaddata = async function testUploaddata(req, res) {
-    try {
-        var params = JSON.parse(req.body.testdata);
+  try {
+    var params = JSON.parse(req.body.testdata);
 
-        if (!params) {
-            return res.json({ response: 0, message: "Please pass user request data" })
-        }
-
-        var result = await testValidation.validate(params);
-        if (result.error) {
-            return res.status(400).json({ response: 0, message: result.error.details[0].message });
-        }
-
-        var Checking_userID = await AdminModel.findOne({ userID: params.userID }).exec();
-        if (!Checking_userID) {
-            return res.json({ response: 0, message: "userID data not found" });
-        }
-
-        if (!req.files || !req.files.test) {
-            return res.json({ response: 0, message: "Please upload mock test file" });
-        }
-
-        var file = req.files.test;
-        var ext = path.extname(file.name);
-        console.log("etxt", true || fasle)
-        if (ext !== ".docx" && ext !== ".mp4") {
-            return res.json({ response: 0, message: "Only .docx format allowed" });
-        }
-
-        var saveName = `svit_${Date.now()}` + ext;
-        var filePath = `./public/images/tests/${saveName}`;
-        var dbpath = '/images/tests/' + saveName;
-
-        // Step 1 → Save file to server
-        file.mv(filePath, async (err) => {
-            if (err) {
-                return res.json({ response: 0, message: "File upload failed" });
-            }
-
-            var testData;
-            if (ext == ".mp4") {
-
-                // Step 4 → Save JSON in DB
-                const testData = {
-                    testName: params.testName,
-                    testNumber: params.testNumber,
-                    testURL: dbpath,
-                    type: params.type || "",
-                    questions: ""   // store JSON
-                };
-                let testtype = params.category;
-
-                const updated = await mocktestModel.findOneAndUpdate(
-                    { userID: params.userID },
-                    [
-                        {
-                            $set: {
-                                videolectures: {
-                                    $cond: {
-                                        if: { $isArray: "$videolectures" },
-                                        then: { $concatArrays: ["$videolectures", [testData]] },
-                                        else: [testData]
-                                    }
-                                }
-                            }
-                        }
-                    ],
-                    {
-                        upsert: true,
-                        new: true,
-                        updatePipeline: true   // ✅ REQUIRED FIX
-                    }
-                );
-
-
-            } else {
-                // Step 2 → Convert docx → Raw text
-                const { value } = await mammoth.extractRawText({ path: filePath });
-
-                // Step 3 → Convert raw text → JSON
-                const questions = convertToQuestions(value);
-
-                // Step 4 → Save JSON in DB
-                const testData = {
-                    testName: params.testName,
-                    testNumber: params.testNumber,
-                    testURL: dbpath,
-                    type: params.type || "",
-                    questions: questions   // store JSON
-                };
-            }
-
-
-            let testtype = params.category;
-            console.log("type", testtype)
-
-
-            const updated = await mocktestModel.findOneAndUpdate(
-                { userID: params.userID },
-                {
-                    $push: {
-                        [testtype]: testData   // ✅ Dynamic push
-                    }
-                },
-                {
-                    new: true,    // ✅ Returns updated document
-                    upsert: true  // ✅ Creates document if not exists
-                }
-            );
-
-            console.log(updated)
-            return res.json({
-                response: 3,
-                message: "Mock test uploaded & converted successfully",
-                filepath: dbpath
-                //  questions: questions
-            });
-        });
-
-    } catch (error) {
-        console.log("Upload error:", error);
-        return res.json({ response: 0, message: "Something went wrong" });
+    if (!params) {
+      return res.json({ response: 0, message: "Please pass user request data" });
     }
+
+    var result = await testValidation.validate(params);
+    if (result.error) {
+      return res.status(400).json({ response: 0, message: result.error.details[0].message });
+    }
+
+    var Checking_userID = await AdminModel.findOne({ userID: params.userID }).exec();
+    if (!Checking_userID) {
+      return res.json({ response: 0, message: "userID data not found" });
+    }
+
+    if (!req.files || !req.files.test) {
+      return res.json({ response: 0, message: "Please upload mock test file" });
+    }
+
+    var file = req.files.test;
+    var ext = path.extname(file.name);
+
+    if (ext !== ".docx" && ext !== ".mp4") {
+      return res.json({ response: 0, message: "Only .docx or .mp4 format allowed" });
+    }
+
+    // ✅ File save paths
+    var saveName = `svit_${Date.now()}` + ext;
+    var filePath = `./public/images/tests/${saveName}`;
+    var dbpath = "/images/tests/" + saveName;
+
+    // ✅ Allowed dynamic DB fields
+    const allowedTypes = [
+      "videolectures",
+      "preliminarytests",
+      "application",
+      "hallticket"
+    ];
+
+    let testtype = params.category;
+
+    if (!allowedTypes.includes(testtype)) {
+      return res.json({ response: 0, message: "Invalid test category" });
+    }
+
+    // ✅ Save file to server
+    file.mv(filePath, async (err) => {
+      if (err) {
+        return res.json({ response: 0, message: "File upload failed" });
+      }
+
+      let questions = "";
+
+      // ✅ If DOCX → Convert to JSON
+      if (ext === ".docx") {
+        const { value } = await mammoth.extractRawText({ path: filePath });
+        questions = convertToQuestions(value);
+      }
+
+      // ✅ FINAL testData object (single source of truth)
+      const testData = {
+        testName: params.testName,
+        testNumber: params.testNumber,
+        testURL: dbpath,
+        type: params.type || "",
+        questions: ext === ".mp4" ? "" : questions
+      };
+
+      // ✅ SINGLE DB UPDATE (NO PIPELINE REQUIRED)
+      const updated = await mocktestModel.findOneAndUpdate(
+        { userID: params.userID },
+        {
+          $push: {
+            [testtype]: testData
+          }
+        },
+        {
+          new: true,
+          upsert: true
+        }
+      );
+
+      return res.json({
+        response: 3,
+        message: "Mock test uploaded & saved successfully",
+        filepath: dbpath,
+        data: updated
+      });
+    });
+
+  } catch (error) {
+    console.log("Upload error:", error);
+    return res.json({ response: 0, message: "Something went wrong" });
+  }
 };
+
 
 function convertToQuestions(rawText) {
     const lines = rawText.split("\n").map(l => l.trim()).filter(l => l !== "");
