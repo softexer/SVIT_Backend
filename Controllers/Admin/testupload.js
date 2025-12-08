@@ -294,11 +294,19 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
             console.log("type", testtype)
 
 
-            const updated = await mocktestModel.updateMany(
+            const updated = await mocktestModel.findOneAndUpdate(
                 { userID: params.userID },
-                { $push: { [testtype]: testData } },
-                { new: true, upsert: true }
+                {
+                    $push: {
+                        [testtype]: testData   // ✅ Dynamic push
+                    }
+                },
+                {
+                    new: true,    // ✅ Returns updated document
+                    upsert: true  // ✅ Creates document if not exists
+                }
             );
+
             console.log(updated)
             return res.json({
                 response: 3,
