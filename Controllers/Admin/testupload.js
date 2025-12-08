@@ -233,10 +233,7 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
 
     // ✅ Allowed dynamic DB fields
     const allowedTypes = [
-      "videolectures",
-      "preliminarytests",
-      "application",
-      "hallticket"
+     "preliminary", "application", "hallticket", "videolectures"
     ];
 
     let testtype = params.category;
