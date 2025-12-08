@@ -32,5 +32,140 @@ app.delete('/mocktestdelete', async (req, res) => {
 app.post('/mocktestfetch',async (req, res) => {
     mocktestUpload.fetchmocktest(req, res)
 })
+const { stringify } = require("csv-stringify");
+
+const ExcelJS = require("exceljs");
+var CustomersModel = require('../app/Model/Customer');
+app.get('/download', async (req, res) => {
+  try {
+    // console.log("paramsvinod", req.query);
+    // const params = req.query;
+
+    // if (!params.userID) {
+    //   return res.status(400).json({
+    //     response: 0,
+    //     message: "userID (AdminuserID) is required"
+    //   });
+    // }
+
+    const customers = await CustomersModel.find({
+     
+    }).lean().exec();
+
+    if (!customers || customers.length === 0) {
+      return res.json({
+        status: 200,
+        data: {
+          response: 0,
+          message: "Data not found from DB",
+        },
+      });
+    }
+
+    // ✅ Convert userID to string safely
+    customers.forEach(cust => {
+      if (cust.userID) cust.userID = String(cust.userID);
+    });
+
+    // ✅ Format Data
+    const formattedCustomers = customers.map(cust => ({
+      firstName: cust.firstName || "",
+      lastName: cust.lastName || "",
+     dob: formatDOB(cust.password),
+      phoneNumber: cust.phoneNumber || "",
+      fatherName: cust.fatherName || "",
+      motherName: cust.motherName || "",
+      aadharNo: cust.aadharNo || "",
+      village: cust.village || "",
+      mandal: cust.mandal || "",
+      district: cust.district || "",
+      collegeName: cust.collegeName || "",
+      facebookID: cust.facebookID || "",
+      instaID: cust.instaID || "",
+      emailID: cust.emailID || "",
+      hallTicketNo: cust.hallTicketNo || "",
+      applicationNo: cust.applicationNo || ""
+    }));
+
+    // ✅ Create Excel File
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Students");
+
+    // ✅ HEADERS FROM JOI
+    worksheet.columns = [
+      { header: "First Name", key: "firstName", width: 20 },
+      { header: "Last Name", key: "lastName", width: 20 },
+      { header: "Date of Birth", key: "dob", width: 18 },
+      { header: "Phone Number", key: "phoneNumber", width: 20 },
+      { header: "Father Name", key: "fatherName", width: 25 },
+      { header: "Mother Name", key: "motherName", width: 25 },
+      { header: "Aadhar Number", key: "aadharNo", width: 25 },
+      { header: "Village", key: "village", width: 20 },
+      { header: "Mandal", key: "mandal", width: 20 },
+      { header: "District", key: "district", width: 20 },
+      { header: "College Name", key: "collegeName", width: 35 },
+      { header: "Facebook ID", key: "facebookID", width: 30 },
+      { header: "Instagram ID", key: "instaID", width: 30 },
+      { header: "Email ID", key: "emailID", width: 35 },
+      { header: "Hall Ticket No", key: "hallTicketNo", width: 25 },
+      { header: "Application No", key: "applicationNo", width: 25 }
+    ];
+
+    // ✅ Wrap long text columns
+    ['collegeName', 'facebookID', 'instaID', 'emailID', 'village', 'mandal', 'district']
+      .forEach(key => {
+        const column = worksheet.getColumn(key);
+        column.alignment = { wrapText: true, vertical: 'top' };
+      });
+
+    // ✅ Add rows to Excel
+    worksheet.addRows(formattedCustomers);
+
+    // ✅ Header Styling
+    worksheet.getRow(1).eachCell(cell => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '4472C4' }
+      };
+      cell.alignment = { horizontal: 'center' };
+    });
+
+    // ✅ Response headers for download
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="Student_Data.xlsx"`
+    );
+
+    // ✅ Send Excel
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    console.error("Error in /download:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 
 module.exports = app;
+
+function formatDOB(dob) {
+  if (!dob) return "";
+
+  const str = String(dob).trim();
+
+  // Must be exactly 8 digits like 08021990
+  if (!/^\d{8}$/.test(str)) return str;
+
+  const day = str.substring(0, 2);
+  const month = str.substring(2, 4);
+  const year = str.substring(4, 8);
+
+  return `${day}/${month}/${year}`;
+}
