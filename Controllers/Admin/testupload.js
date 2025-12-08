@@ -248,23 +248,28 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
                 };
                 let testtype = params.category;
 
-                const updated = await mocktestModel.findOneAndUpdate(
-                    { userID: params.userID },
-                    [
-                        {
-                            $set: {
-                                videolectures: {
-                                    $cond: {
-                                        if: { $isArray: "$videolectures" },
-                                        then: { $concatArrays: ["$videolectures", [testData]] },
-                                        else: [testData]
-                                    }
-                                }
-                            }
-                        }
-                    ],
-                    { upsert: true, new: true }
-                );
+              const updated = await mocktestModel.findOneAndUpdate(
+  { userID: params.userID },
+  [
+    {
+      $set: {
+        videolectures: {
+          $cond: {
+            if: { $isArray: "$videolectures" },
+            then: { $concatArrays: ["$videolectures", [testData]] },
+            else: [testData]
+          }
+        }
+      }
+    }
+  ],
+  { 
+    upsert: true, 
+    new: true,
+    updatePipeline: true   // ✅ REQUIRED FIX
+  }
+);
+
 
             } else {
                 // Step 2 → Convert docx → Raw text
