@@ -244,31 +244,32 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
                     testName: params.testName,
                     testNumber: params.testNumber,
                     testURL: dbpath,
+                    type: params.type || "",
                     questions: ""   // store JSON
                 };
                 let testtype = params.category;
 
-              const updated = await mocktestModel.findOneAndUpdate(
-  { userID: params.userID },
-  [
-    {
-      $set: {
-        videolectures: {
-          $cond: {
-            if: { $isArray: "$videolectures" },
-            then: { $concatArrays: ["$videolectures", [testData]] },
-            else: [testData]
-          }
-        }
-      }
-    }
-  ],
-  { 
-    upsert: true, 
-    new: true,
-    updatePipeline: true   // ✅ REQUIRED FIX
-  }
-);
+                const updated = await mocktestModel.findOneAndUpdate(
+                    { userID: params.userID },
+                    [
+                        {
+                            $set: {
+                                videolectures: {
+                                    $cond: {
+                                        if: { $isArray: "$videolectures" },
+                                        then: { $concatArrays: ["$videolectures", [testData]] },
+                                        else: [testData]
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    {
+                        upsert: true,
+                        new: true,
+                        updatePipeline: true   // ✅ REQUIRED FIX
+                    }
+                );
 
 
             } else {
@@ -283,6 +284,7 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
                     testName: params.testName,
                     testNumber: params.testNumber,
                     testURL: dbpath,
+                    type: params.type || "",
                     questions: questions   // store JSON
                 };
             }
