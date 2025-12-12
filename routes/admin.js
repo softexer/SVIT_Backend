@@ -155,8 +155,7 @@ app.get('/download', async (req, res) => {
 
 
 
-const express = require('express');
-const Customer = require('../../Models/Customer'); // Assuming you have a Customer model
+const Customer = require('../app/Model/Customer'); // Assuming you have a Customer model
 
 
 // API to set hall ticket number based on application number
