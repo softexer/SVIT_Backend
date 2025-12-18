@@ -12,11 +12,14 @@ var uservalidationData = {
         mandal: Joi.string().strict().required(),
         district: Joi.string().strict().required(),
         collegeName: Joi.string().strict().required(),
+        streetNo: Joi.string().strict().required(),
+        collegeAddress: Joi.string().strict().required(),
         facebookID: Joi.string().optional().allow(''),
         instaID: Joi.string().optional().allow(''),
         emailID: Joi.string().optional().allow(''),
         hallTicketNo:Joi.string().optional().allow(''),
-        applicationNo:Joi.string().optional().allow('')
+        applicationNo:Joi.string().optional().allow(''),
+        register_type: Joi.string().strict().required(),
 
     }),
     customervalidations: Joi.object({

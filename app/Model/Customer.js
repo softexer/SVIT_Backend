@@ -38,6 +38,11 @@ var CustomerSchema = new schema({
         required: false,
         default: ''
     },
+    streetNo: {
+        type: String,
+        required: false,
+        default: ''
+    },
     mandal: {
         type: String,
         required: false,
@@ -49,6 +54,11 @@ var CustomerSchema = new schema({
         default: ''
     },
     collegeName: {
+        type: String,
+        required: false,
+        default: ''
+    },
+    collegeAddress: {
         type: String,
         required: false,
         default: ''

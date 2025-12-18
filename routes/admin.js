@@ -2,9 +2,9 @@ var express = require('express');
 var app = express.Router()
 var fileupload = require('express-fileupload');
 app.use(
-    fileupload({
-        limits: { fileSize: 500 * 1024 * 1024 },
-    })
+  fileupload({
+    limits: { fileSize: 500 * 1024 * 1024 },
+  })
 );
 var Adminlogin = require('../Controllers/Admin/login');
 var Adminsignup = require('../Controllers/Admin/signup');
@@ -13,24 +13,24 @@ var verificatioToken = require('./verificationToken')
 
 //Admin signup api
 app.post('/adminsignup', async (req, res) => {
-    Adminsignup.signup(req, res)
+  Adminsignup.signup(req, res)
 })
 
 app.post('/adminlogin', async (req, res) => {
-    Adminlogin.login(req, res)
+  Adminlogin.login(req, res)
 })
 
 app.post('/mocktestupload', async (req, res) => {
-    mocktestUpload.testUploaddata(req, res)
+  mocktestUpload.testUploaddata(req, res)
 })
 
 app.delete('/mocktestdelete', async (req, res) => {
-    mocktestUpload.deleteMockTest(req, res)
+  mocktestUpload.deleteMockTest(req, res)
 })
 
 
-app.post('/mocktestfetch',async (req, res) => {
-    mocktestUpload.fetchmocktest(req, res)
+app.post('/mocktestfetch', async (req, res) => {
+  mocktestUpload.fetchmocktest(req, res)
 })
 const { stringify } = require("csv-stringify");
 
@@ -49,7 +49,7 @@ app.get('/download', async (req, res) => {
     // }
 
     const customers = await CustomersModel.find({
-     
+
     }).lean().exec();
 
     if (!customers || customers.length === 0) {
@@ -71,7 +71,7 @@ app.get('/download', async (req, res) => {
     const formattedCustomers = customers.map(cust => ({
       firstName: cust.firstName || "",
       lastName: cust.lastName || "",
-     dob: formatDOB(cust.password),
+      dob: formatDOB(cust.password),
       phoneNumber: cust.phoneNumber || "",
       fatherName: cust.fatherName || "",
       motherName: cust.motherName || "",
@@ -80,6 +80,9 @@ app.get('/download', async (req, res) => {
       mandal: cust.mandal || "",
       district: cust.district || "",
       collegeName: cust.collegeName || "",
+      streetNo: cust.streetNo || "",
+      collegeAddress: cust.collegeAddress || "",
+      register_type: cust.register_type || "",
       facebookID: cust.facebookID || "",
       instaID: cust.instaID || "",
       emailID: cust.emailID || "",
@@ -101,14 +104,17 @@ app.get('/download', async (req, res) => {
       { header: "Mother Name", key: "motherName", width: 25 },
       { header: "Aadhar Number", key: "aadharNo", width: 25 },
       { header: "Village", key: "village", width: 20 },
+      { header: "Street No", key: "streetNo", width: 15 },
       { header: "Mandal", key: "mandal", width: 20 },
       { header: "District", key: "district", width: 20 },
       { header: "College Name", key: "collegeName", width: 35 },
+      { header: "College Address", key: "collegeAddress", width: 40 },
       { header: "Facebook ID", key: "facebookID", width: 30 },
       { header: "Instagram ID", key: "instaID", width: 30 },
       { header: "Email ID", key: "emailID", width: 35 },
       { header: "Hall Ticket No", key: "hallTicketNo", width: 25 },
-      { header: "Application No", key: "applicationNo", width: 25 }
+      { header: "Application No", key: "applicationNo", width: 25 },
+      { header: "Register Type", key: "register_type", width: 20 }
     ];
 
     // ✅ Wrap long text columns
@@ -160,31 +166,31 @@ const Customer = require('../app/Model/Customer'); // Assuming you have a Custom
 
 // API to set hall ticket number based on application number
 app.post('/setHallTicket', async (req, res) => {
-    const { userID,applicationNumber, hallTicketNumber } = req.body;
+  const { userID, applicationNumber, hallTicketNumber } = req.body;
 
-    if (!applicationNumber && !hallTicketNumber) {
-        return res.status(400).json({ message: 'Application number and hall ticket number are required.' });
+  if (!applicationNumber && !hallTicketNumber) {
+    return res.status(400).json({ message: 'Application number and hall ticket number are required.' });
+  }
+
+  try {
+    // Find the customer by application number
+    const customer = await Customer.findOne({ userID: userID });
+
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found.' });
     }
 
-    try {
-        // Find the customer by application number
-        const customer = await Customer.findOne({ userID :userID});
+    // Update the hall ticket number
+    var updateQuery = await Customer.updateOne(
+      { userID: userID },
+      { $set: { hallTicketNo: hallTicketNumber, applicationNo: applicationNumber } }
+    ).exec();
 
-        if (!customer) {
-            return res.status(404).json({ message: 'Customer not found.' });
-        }
-
-        // Update the hall ticket number
-     var updateQuery = await Customer.updateOne(
-            { userID: userID },
-            { $set: { hallTicketNo: hallTicketNumber,applicationNo: applicationNumber } }
-        ).exec();
-
-        res.status(200).json({ message: 'Hall ticket number / application number updated successfully.', customer });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error.' });
-    }
+    res.status(200).json({ message: 'Hall ticket number / application number updated successfully.', customer });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
 });
 
 
