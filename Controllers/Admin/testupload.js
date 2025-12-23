@@ -295,32 +295,72 @@ module.exports.testUploaddata = async function testUploaddata(req, res) {
 
 
 function convertToQuestions(rawText) {
-    const lines = rawText.split("\n").map(l => l.trim()).filter(l => l !== "");
+    const questions = [];
 
-    let questions = [];
-    let q = null;
+    // Match each full question block
+    const questionRegex =
+        /Q(\d+)\s*:\s*([\s\S]*?)ANSWER\s*:\s*([A-D])/gi;
 
-    lines.forEach(line => {
-        if (line.match(/^Q\d+/i)) {
-            if (q) questions.push(q);
+    let match;
 
-            q = {
-                id: questions.length + 1,
-                text: line.replace(/^Q\d+:/i, "").trim(),
-                options: [],
-                correctAnswer: null
-            };
+    while ((match = questionRegex.exec(rawText)) !== null) {
+        const id = Number(match[1]);
+        const body = match[2].trim();
+        const answerLetter = match[3].toUpperCase();
+
+        // Extract options
+        const optionRegex = /\(([A-D])\)\s*([^()]+)/g;
+        const options = [];
+        let optMatch;
+
+        while ((optMatch = optionRegex.exec(body)) !== null) {
+            options.push(optMatch[2].trim());
         }
-        else if (line.match(/^\(A\)/i) || line.match(/^\([A-D]\)/i)) {
-            q.options.push(line.substring(3).trim());
-        }
-        else if (line.startsWith("ANSWER")) {
-            const letter = line.split(":")[1].trim();
-            q.correctAnswer = letter.charCodeAt(0) - 65;
-        }
-    });
 
-    if (q) questions.push(q);
+        // Remove options from question text
+        const questionText = body
+            .replace(optionRegex, "")
+            .trim();
+
+        questions.push({
+            id,
+            text: questionText,
+            options,
+            correctAnswer: answerLetter.charCodeAt(0) - 65
+        });
+    }
+
     return questions;
 }
+
+
+// function convertToQuestions(rawText) {
+//     const lines = rawText.split("\n").map(l => l.trim()).filter(l => l !== "");
+
+//     let questions = [];
+//     let q = null;
+
+//     lines.forEach(line => {
+//         if (line.match(/^Q\d+/i)) {
+//             if (q) questions.push(q);
+
+//             q = {
+//                 id: questions.length + 1,
+//                 text: line.replace(/^Q\d+:/i, "").trim(),
+//                 options: [],
+//                 correctAnswer: null
+//             };
+//         }
+//         else if (line.match(/^\(A\)/i) || line.match(/^\([A-D]\)/i)) {
+//             q.options.push(line.substring(3).trim());
+//         }
+//         else if (line.startsWith("ANSWER")) {
+//             const letter = line.split(":")[1].trim();
+//             q.correctAnswer = letter.charCodeAt(0) - 65;
+//         }
+//     });
+
+//     if (q) questions.push(q);
+//     return questions;
+// }
 
